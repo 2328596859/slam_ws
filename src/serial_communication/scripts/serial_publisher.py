@@ -8,7 +8,9 @@ def main():
         checksum = 0
         for b in frame:
             checksum ^= b
+        # 末尾添加校验和
         frame.append(checksum)
+        print(f"Sending frame: {frame}")
         frame = bytes(frame)
         ser.write(frame)
         ser.flush()  # 确保数据写出
