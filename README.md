@@ -65,4 +65,7 @@ catkin_make_isolated --install --use-ninja --cmake-args -DPYTHON_EXECUTABLE=$(wh
 roslaunch cartographer_ros demo_backpack_2d.launch bag_filename:=/home/leju-ali/ALi-workspace-study/slam_ws/rosbag/cartographer_paper_deutsches_museum.bag
 ```
 
+sudo apt-get update
+sudo apt-get install libgmock-dev libgtest-dev
+
 > created by lisong
