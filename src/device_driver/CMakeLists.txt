@@ -136,7 +136,8 @@ message(STATUS "catkin_INCLUDE_DIRS: ${catkin_INCLUDE_DIRS}")
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
                     src/driver_node.cpp
-                    src/liftDriver.cpp)
+                    src/liftDriver.cpp
+                    src/platformDriver.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
