@@ -78,8 +78,7 @@ bool SerialPort::readFrame(std::vector<uint8_t>& frame) {
 
 }
 
-// void SerialPort::writeFrame(uint8_t cmd1, uint8_t cmd2) {
-//     if (!ser_.isOpen()) return;
-//     std::vector<uint8_t> buffer = {cmd1, cmd2};
-//     ser_.write(buffer);
-// }
+void SerialPort::writeFrame(std::vector<uint8_t>& frame) {
+    if (!ser_.isOpen()) return;
+    ser_.write(frame);
+}

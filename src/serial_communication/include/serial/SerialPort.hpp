@@ -18,7 +18,7 @@ public:
     void closeSerialPort();
     bool isOpen() const;
     bool readFrame(std::vector<uint8_t>& frame);
-    // void writeFrame(uint8_t cmd1, uint8_t cmd2);
+    void writeFrame(std::vector<uint8_t>& frame);
 
 private:
     std::string port_;
