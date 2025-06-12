@@ -51,7 +51,7 @@ bool SerialPort::readFrame(std::vector<uint8_t>& frame) {
     }
 
     // 组包：查找帧头、判断长度、校验
-    while (buffer_.size() >= 6) { 
+    while (buffer_.size() >= 7) { 
         // 查找帧头
         if (buffer_[0] != 0xA5) {
             buffer_.erase(buffer_.begin());
@@ -59,7 +59,7 @@ bool SerialPort::readFrame(std::vector<uint8_t>& frame) {
         }
         uint8_t datalen = buffer_[1];
         size_t frame_len = 2 + datalen + 1; // 帧头+长度+数据+校验
-        if (buffer_.size() < frame_len) break; // 数据还不够
+        if (buffer_.size() < frame_len) break;
 
         // 校验
         uint8_t checksum = 0;

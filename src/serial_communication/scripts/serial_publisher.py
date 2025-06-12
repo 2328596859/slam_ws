@@ -1,20 +1,34 @@
 import serial
 
+# 升降杆上升1mm
+frame_Lift_up=[0xA5, 0x04, 0x55, 0x20, 0x00, 0x01, 0xD5]
+# 升降杆下降1mm
+frame_Lift_down=[0xA5, 0x04, 0x55, 0x20, 0x01, 0x01,0xD4 ]
+# 云台左转0度
+frame_Platform_left = [0xA5, 0x04, 0x55, 0x21, 0x00, 0x00, 0xD5]
+# 云台右转0度
+frame_Platform_right = [0xA5, 0x04, 0x55, 0x21, 0x01, 0x00, 0xD4]
+# 云台上仰0度
+frame_Platform_up = [0xA5, 0x04, 0x55, 0x21, 0x02, 0x00, 0xD7]
+# 云台下俯0度
+frame_Platform_down = [0xA5, 0x04, 0x55, 0x21, 0x03, 0x00, 0xD6]
+# 烟雾温湿度请求
+frame_Smoke_request = [0xA5, 0x02, 0x55, 0x22,0xD0]
 
-def main():
+def  checksum(frame):
+    """计算校验和"""
+    checksum = 0
+    for b in frame:
+        checksum ^= b
+    return checksum
+def publish_frame(frame):
+    """发送帧到串口"""
     try:
         ser = serial.Serial('/dev/pts/6', 115200, timeout=1)
-        frame =[0xA5, 0x03, 0x02, 0x55, 0x20]  # 示例帧
-        checksum = 0
-        for b in frame:
-            checksum ^= b
-        # 末尾添加校验和
-        frame.append(checksum)
-        print(f"Sending frame: {frame}")
-        frame = bytes(frame)
-        ser.write(frame)
-        ser.flush()  # 确保数据写出
-        print("Frame sent successfully.")
+        frame_bytes = bytes(frame)
+        ser.write(frame_bytes)
+        ser.flush()
+        print(f"Frame sent successfully: {frame}")
     except serial.SerialException as e:
         print(f"Serial error: {e}")
     except Exception as e:
@@ -25,6 +39,5 @@ def main():
         except Exception:
             pass
 
-
 if __name__ == "__main__":
-    main()
+    publish_frame(frame_Lift_up) 

@@ -5,7 +5,7 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "serial_node2");
     ros::NodeHandle nh;
 
-    std::string port = "/dev/pts/5"; // 串口设备路径
+    std::string port = "/dev/pts/7"; // 串口设备路径
     SerialPort serialPort(port, 115200);
 
     serialPort.openSerialPort();
@@ -20,6 +20,22 @@ int main(int argc, char **argv)
     while (ros::ok()) {
         std::vector<uint8_t> frame;
         if (serialPort.readFrame(frame)) {
+            if (frame.size() >= 7) { 
+                uint8_t frame_head = frame[0];
+                uint8_t data_len   = frame[1];
+                uint8_t cmd        = frame[2];
+                uint8_t func       = frame[3];
+                uint8_t param1     = frame[4];
+                uint8_t param2     = frame[5];
+                uint8_t checksum   = frame[6];
+
+                // 你可以根据需要打印或使用这些变量
+                ROS_INFO("帧头: 0x%02x, 长度: %d, 命令: 0x%02x, 功能: 0x%02x, 参数1: 0x%02x, 参数2: 0x%02x, 校验: 0x%02x",
+                        frame_head, data_len, cmd, func, param1, param2, checksum);
+            }
+            
+            
+            
             std_msgs::String msg;
             std::stringstream ss;
             for (auto byte : frame) {
