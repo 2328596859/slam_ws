@@ -10,7 +10,7 @@ project(device_ros_interface)
 find_package(catkin REQUIRED COMPONENTS
   device_driver
   roscpp
-  serial_communication
+  serial_port
   std_msgs
 )
 

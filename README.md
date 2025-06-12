@@ -59,5 +59,10 @@ catkin_make_isolated --install --use-ninja --cmake-args -DPYTHON_EXECUTABLE=$(wh
 ```
 
 ---
+## 运行
+
+```bash
+roslaunch cartographer_ros demo_backpack_2d.launch bag_filename:=/home/leju-ali/ALi-workspace-study/slam_ws/rosbag/cartographer_paper_deutsches_museum.bag
+```
 
 > created by lisong

@@ -1,5 +1,5 @@
 #include <std_msgs/String.h>
-#include "serial/SerialPort.hpp"
+#include "serial/SerialPort.h"
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "serial_node2");

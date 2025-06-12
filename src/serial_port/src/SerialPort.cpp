@@ -1,4 +1,4 @@
-#include "serial/SerialPort.hpp"
+#include "serial/SerialPort.h"
 
 // 串口设置1000毫秒的超时,避免在读取数据时阻塞过久
 SerialPort::SerialPort(const std::string& port, uint32_t baudrate)
