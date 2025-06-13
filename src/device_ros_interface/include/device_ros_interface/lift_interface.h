@@ -1,5 +1,6 @@
 #pragma once
 #include <ros/ros.h>
+#include <std_msgs/Empty.h> 
 #include "device_driver/liftDriver.h"
 
 class LiftInterface {

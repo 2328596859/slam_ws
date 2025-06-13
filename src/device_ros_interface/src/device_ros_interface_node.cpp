@@ -1,5 +1,5 @@
 #include <ros/ros.h>
-#include "serial_port/serial/SerialPort.h"
+#include "serial_port/SerialPort.h"
 #include "device_driver/liftDriver.h"
 #include "device_driver/platformDriver.h"
 #include "device_ros_interface/lift_interface.h"

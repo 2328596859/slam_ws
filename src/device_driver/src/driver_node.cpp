@@ -1,4 +1,4 @@
-#include "serial_port/serial/SerialPort.h"
+#include "serial_port/SerialPort.h"
 #include "device_driver/liftDriver.h"
 #include "device_driver/platformDriver.h"
 
@@ -11,12 +11,12 @@ int main() {
     }
     LiftDriver lift(serial);
     PlatformDriver platform(serial);
-    // 控制升降机
-    lift.liftUp();
-    lift.liftDown();
-    // 控制平台
-    platform.platform_up();
-    platform.platform_down();
-    platform.platform_right();
-    platform.platform_left();   
+    // // 控制升降机
+    // lift.liftUp();
+    // lift.liftDown();
+    // // 控制平台
+    // platform.platform_up();
+    // platform.platform_down();
+    // platform.platform_right();
+    // platform.platform_left();   
 }
