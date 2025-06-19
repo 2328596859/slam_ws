@@ -3,10 +3,21 @@
 PlatformInterface::PlatformInterface(ros::NodeHandle& nh, PlatformDriver& platform_driver)
     : platform_driver_(platform_driver)
 {
-    move_sub_ = nh.subscribe("platform_move", 1, &PlatformInterface::moveCallback, this);
+    move_sub_ = nh.subscribe("platform_move", 1, &PlatformInterface::platformCallback, this);
 }
 
-void PlatformInterface::moveCallback(const std_msgs::Int32::ConstPtr& msg) {
-    // 假设 msg->data 表示移动到的平台编号
-    platform_driver_.moveTo(msg->data);
+void PlatformInterface::platformCallback(const open_msgs::PlatformControl::ConstPtr& msg) {
+    if (msg->cmd == "up") {
+        uint8_t data1 = static_cast<uint8_t>(msg->data);
+        platform_driver_.platform_up(data1);
+    } else if (msg->cmd == "down") {
+        uint8_t data1 = static_cast<uint8_t>(msg->data);
+        platform_driver_.platform_down(data1);
+    } else if (msg->cmd == "right") {
+        uint8_t data1 = static_cast<uint8_t>(msg->data);
+        platform_driver_.platform_right(data1);
+    } else if (msg->cmd == "left") {
+        uint8_t data1 = static_cast<uint8_t>(msg->data);
+        platform_driver_.platform_left(data1);
+    }
 }

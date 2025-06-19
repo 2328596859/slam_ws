@@ -9,8 +9,9 @@ project(device_ros_interface)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   device_driver
-  roscpp
   serial_port
+  open_msgs
+  roscpp
   std_msgs
 )
 
@@ -106,7 +107,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
  INCLUDE_DIRS include
 #  LIBRARIES device_ros_interface
- CATKIN_DEPENDS device_driver roscpp serial_communication std_msgs
+ CATKIN_DEPENDS device_driver roscpp serial_port std_msgs open_msgs
 #  DEPENDS system_lib
 )
 
@@ -134,9 +135,10 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node src/device_ros_interface_node.cpp
-                                src/lift_interface.cpp
-                                src/platform_interface.cpp) 
+add_executable(${PROJECT_NAME}_node 
+                      src/device_ros_interface_node.cpp
+                      src/lift_interface.cpp
+                      src/platform_interface.cpp) 
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
