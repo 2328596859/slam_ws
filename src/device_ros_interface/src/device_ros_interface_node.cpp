@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "device_ros_interface_node");
     ros::NodeHandle nh;
 
-    SerialPort serial("/dev/ttyUSB0", 115200);
+    SerialPort serial("/dev/pts/5", 115200);
     serial.openSerialPort();
     if (!serial.isOpen()) {
         ROS_ERROR("Failed to open serial port!");
@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
 
     LiftInterface lift_interface(nh, lift);
     PlatformInterface platform_interface(nh, platform);
-
+    ROS_INFO("Device ROS interface node started successfully.");
     ros::spin();
     return 0;
 }
