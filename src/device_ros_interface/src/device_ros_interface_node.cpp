@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "device_ros_interface_node");
     ros::NodeHandle nh;
 
-    SerialPort serial("/dev/pts/5", 115200);
+    SerialPort serial("/dev/ttyS3", 115200);
     serial.openSerialPort();
     if (!serial.isOpen()) {
         ROS_ERROR("Failed to open serial port!");

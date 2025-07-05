@@ -24,7 +24,7 @@ def  checksum(frame):
 def publish_frame(frame):
     """发送帧到串口"""
     try:
-        ser = serial.Serial('/dev/pts/6', 115200, timeout=1)
+        ser = serial.Serial('/dev/ttyS3', 115200, timeout=1)
         frame_bytes = bytes(frame)
         ser.write(frame_bytes)
         ser.flush()

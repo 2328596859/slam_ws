@@ -1,0 +1,14 @@
+[Unit]
+Description=Start Webserver service.
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=shh
+Restart=on-failure
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+ExecStart=/bin/bash /home/shh/slam_ws/src/web_socket/scripts/start_serial.sh
+
+[Install]
+WantedBy=multi-user.target

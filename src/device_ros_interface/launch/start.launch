@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="device_ros_interface" type="device_ros_interface_node" name="device_ros_interface_node" output="screen" />
+</launch>

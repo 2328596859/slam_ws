@@ -2,7 +2,7 @@
 
 // 串口设置1000毫秒的超时,避免在读取数据时阻塞过久
 SerialPort::SerialPort(const std::string& port, uint32_t baudrate)
-    : port_(port), baudrate_(baudrate), ser_(port, baudrate, serial::Timeout::simpleTimeout(1)){
+    : port_(port), baudrate_(baudrate), ser_(port, baudrate, serial::Timeout::simpleTimeout(100)){
 }
 // 析构函数在初始化对象释放时自动调用关闭串口连接，避免资源泄漏
 SerialPort::~SerialPort() {
@@ -52,6 +52,13 @@ bool SerialPort::readFrame(std::vector<uint8_t>& frame) {
 
     // 组包：查找帧头、判断长度、校验
     while (buffer_.size() >= 7) { 
+        
+        // 输出buffer
+        std::ostringstream oss;
+        for (const auto& byte : buffer_) {
+            oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+        }
+        ROS_INFO_STREAM("Buffer content: " << oss.str());
         // 查找帧头
         if (buffer_[0] != 0xA5) {
             buffer_.erase(buffer_.begin());
@@ -81,4 +88,11 @@ bool SerialPort::readFrame(std::vector<uint8_t>& frame) {
 void SerialPort::writeFrame(std::vector<uint8_t>& frame) {
     if (!ser_.isOpen()) return;
     ser_.write(frame);
+    ROS_INFO("Write frame successful");
+    // 输出写入的帧数据
+    std::ostringstream oss;
+    for (const auto& byte : frame) {
+        oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+    }
+    ROS_INFO_STREAM("Wrote frame: " << oss.str());
 }
