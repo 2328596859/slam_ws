@@ -39,9 +39,14 @@ class WebSocketServer:
         Returns:
             websockets.server.WebSocketServer: 运行中的服务器实例
         """
+        # 设置事件循环到handlers
+        loop = asyncio.get_event_loop()
+        self.handlers.set_event_loop(loop)
+        
         server = await websockets.serve(self.handle_connection, self.host, self.port)
         # print(f"WebSocket server started at ws://{self.host}:{self.port}")  
         print("WebSocket server started at ws://{}:{}".format(self.host, self.port))  
+        return server
     
     async def handle_connection(self, websocket):
         """
@@ -65,6 +70,8 @@ class WebSocketServer:
             print("Connection error: {}".format(e))
             print(traceback.format_exc())
         finally:
+            # 连接断开时，从handlers中移除客户端
+            self.handlers.remove_websocket_client(websocket)
             # print(f"Connection closed: {websocket.remote_address}")
             print("Connection closed: {}".format(websocket.remote_address))
       
@@ -76,6 +83,9 @@ class WebSocketServer:
             await self.handlers.handle_platform_control(websocket, data)
         elif cmd == Command.PING:
             await self.handlers.handle_ping(websocket, data)
+        elif cmd == Command.SUBSCRIBE:
+            await self.handlers.handle_subscribe(websocket, data)
+        elif cmd == Command.UNSUBSCRIBE:
+            await self.handlers.handle_unsubscribe(websocket, data)
         else:
-            await send_error(websocket, 400, f"Unknown command: {cmd}")
- 
+            await send_error(websocket, 400, "Unknown command: {}".format(cmd))

@@ -12,7 +12,7 @@ class Command(str, Enum):
     PING = "PING"
     ERROR = "ERROR"
     WARN = "WARN"
-
-
+    SUBSCRIBE = "SUBSCRIBE"
+    UNSUBSCRIBE = "UNSUBSCRIBE"
 
 
