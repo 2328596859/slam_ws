@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(device_ros_interface)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
-
+find_package(Threads REQUIRED)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -139,7 +139,9 @@ include_directories(
 add_executable(${PROJECT_NAME}_node 
                       src/device_ros_interface_node.cpp
                       src/lift_interface.cpp
-                      src/platform_interface.cpp) 
+                      src/platform_interface.cpp
+                      src/smokesensor_interface.cpp
+                      src/flamesensor_interface.cpp) 
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -154,6 +156,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
 )
 
 #############

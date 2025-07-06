@@ -50,6 +50,7 @@ add_message_files(
   FILES
   LiftControl.msg
   PlatformControl.msg
+  Serialmsg.msg
 )
 
 ## Generate services in the 'srv' folder

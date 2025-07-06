@@ -6,6 +6,7 @@
 #include <serial/serial.h>
 #include <iostream>
 #include <ros/ros.h>
+#include "open_msgs/Serialmsg.h" 
 class SerialPort
 {
 public:
@@ -19,7 +20,8 @@ public:
     bool isOpen() const;
     bool readFrame(std::vector<uint8_t>& frame);
     void writeFrame(std::vector<uint8_t>& frame);
-
+    // 读取数据使用话题转发接受到的指令
+    void publishSerialmsgs(ros::NodeHandle& nh, const std::string& topic_name, int loop_rate_hz);
 private:
     std::string port_;
     uint32_t baudrate_;

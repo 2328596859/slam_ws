@@ -11,8 +11,11 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   serial
   std_msgs
+  open_msgs
+  message_generation
 )
 
+find_package(Threads REQUIRED)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -105,7 +108,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES serial_port
-  CATKIN_DEPENDS roscpp serial std_msgs
+  CATKIN_DEPENDS roscpp serial std_msgs open_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -155,6 +158,7 @@ add_dependencies(serial_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORT
 ## Specify libraries to link a library or executable target against
 target_link_libraries(serial_node
   ${catkin_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT}
 )
 
 #############
