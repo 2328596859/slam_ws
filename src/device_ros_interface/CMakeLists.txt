@@ -141,7 +141,8 @@ add_executable(${PROJECT_NAME}_node
                       src/lift_interface.cpp
                       src/platform_interface.cpp
                       src/smokesensor_interface.cpp
-                      src/flamesensor_interface.cpp) 
+                      src/flamesensor_interface.cpp
+                      src/emergencystop_interface.cpp) 
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

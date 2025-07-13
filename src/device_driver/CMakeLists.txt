@@ -125,6 +125,8 @@ message(STATUS "catkin_INCLUDE_DIRS: ${catkin_INCLUDE_DIRS}")
 add_library(${PROJECT_NAME}
   src/liftDriver.cpp
   src/platformDriver.cpp
+  src/flamesensorDriver.cpp
+  src/smokesensorDriver.cpp
 )
 
 ## Add cmake target dependencies of the library
@@ -138,7 +140,9 @@ add_library(${PROJECT_NAME}
 add_executable(${PROJECT_NAME}_node 
                     src/driver_node.cpp
                     src/liftDriver.cpp
-                    src/platformDriver.cpp)
+                    src/platformDriver.cpp
+                    src/flamesensorDriver.cpp
+                    src/smokesensorDriver.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the

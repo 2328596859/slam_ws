@@ -51,6 +51,10 @@ add_message_files(
   LiftControl.msg
   PlatformControl.msg
   Serialmsg.msg
+  FlamesensorControl.msg
+  SmokesensorControl.msg
+  FlamesensorState.msg
+  SmokesensorState.msg
 )
 
 ## Generate services in the 'srv' folder

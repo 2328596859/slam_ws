@@ -7,6 +7,7 @@ public:
     explicit LiftDriver(SerialPort& serial) : serial_(serial) {}
     void liftUp(uint8_t data1);
     void liftDown(uint8_t data1);
+    void liftreset(uint8_t data1);
 
 private:
     SerialPort& serial_;

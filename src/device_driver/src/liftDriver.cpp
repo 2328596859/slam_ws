@@ -24,3 +24,9 @@ void LiftDriver::liftDown(uint8_t data1) {
     auto frame = buildFrame(0x01,data1);
     serial_.writeFrame(frame);
 }
+
+void LiftDriver::liftreset(uint8_t data1) {
+    // 重置升降杆 data1只占位
+    auto frame = buildFrame(0x02,data1);
+    serial_.writeFrame(frame);
+}

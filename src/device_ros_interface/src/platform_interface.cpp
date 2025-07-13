@@ -3,7 +3,7 @@
 PlatformInterface::PlatformInterface(ros::NodeHandle& nh, PlatformDriver& platform_driver)
     : platform_driver_(platform_driver)
 {
-    move_sub_ = nh.subscribe("platform_control", 1, &PlatformInterface::platformCallback, this);
+    move_sub_ = nh.subscribe("platform/platform_control", 1, &PlatformInterface::platformCallback, this);
 }
 
 void PlatformInterface::platformCallback(const open_msgs::PlatformControl::ConstPtr& msg) {

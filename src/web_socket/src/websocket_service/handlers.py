@@ -2,7 +2,7 @@ from websocket_service.utils import *
 import rospy
 import asyncio
 import json
-from open_msgs.msg import LiftControl, PlatformControl
+from open_msgs.msg import LiftControl, PlatformControl,FlamesensorControl,SmokesensorControl,FlamesensorState,SmokesensorState
 import std_msgs.msg
 import threading
 
@@ -22,16 +22,24 @@ class CommandHandlers:
         
         # 存储事件循环引用
         self.loop = None
-        
-        # ROS订阅者
+        self.liftdata = None
+        self.platformdata = None
+        self.flame_state = None
+        self.smoke_state = None
         self.smoke_sub = rospy.Subscriber("smokesensor/smoke_data", std_msgs.msg.Float64, self.smoke_callback)
         self.temperature_sub = rospy.Subscriber("smokesensor/temperature_data", std_msgs.msg.Float64, self.temperature_callback)
         self.humidity_sub = rospy.Subscriber("smokesensor/humidity_data", std_msgs.msg.Float64, self.humidity_callback)
         self.flame_sub = rospy.Subscriber("flamesensor/flame_data", std_msgs.msg.Int32, self.flame_callback)
-        
+        self.liftdata_sub = rospy.Subscriber("lift/lift_data", std_msgs.msg.Int32, self.liftdata_callback)
+        self.emergencystop_sub = rospy.Subscriber("emergencystop/emergency_data", std_msgs.msg.Int32, self.emergencystopdata_callback)
+        self.smoke_state_sub = rospy.Subscriber("smokesensor/smoke_state", std_msgs.msg.Int32, self.smoke_state_callback)
+        self.flame_state_sub = rospy.Subscriber("smokesensor/flame_state", std_msgs.msg.Int32, self.flame_state_callback)
+
         # 定义两个话题发布者话题/lift_control与/platform_control
-        self.lift_control_publisher = rospy.Publisher('/lift_control', LiftControl, queue_size=10)
-        self.platform_control_publisher = rospy.Publisher('/platform_control', PlatformControl, queue_size=10)
+        self.lift_control_publisher = rospy.Publisher('lift/lift_control', LiftControl, queue_size=10)
+        self.platform_control_publisher = rospy.Publisher('platform/platform_control', PlatformControl, queue_size=10)
+        self.flamesensor_control_publisher = rospy.Publisher('flamesensor/flamesensor_control', FlamesensorControl, queue_size=10)
+        self.smokesensor_control_publisher = rospy.Publisher('smokesensor/smokesensor_control', SmokesensorControl, queue_size=10)
 
     def set_event_loop(self, loop):
         """设置事件循环引用"""
@@ -122,8 +130,24 @@ class CommandHandlers:
             "TIMESTAMP": rospy.Time.now().to_sec()
         }
         self._schedule_broadcast(message)
+    def emergencystopdata_callback(self,msg):
+        """急停传感器数据回调"""
+        message = {
+            "TYPE": "EMERGENCYSTOP_DATA",
+            "SENSOR_TYPE": "EMERGENCYSTOP",
+            "DATA": msg.data,
+            "TIMESTAMP": rospy.Time.now().to_sec()
+        }
+        self._schedule_broadcast(message)
 
-
+    def liftdata_callback(self,msg):
+        """火焰传感器数据回调"""
+        self.liftdata = msg.data
+    
+    def smoke_state_callback(self,msg):
+       self.smoke_state = msg.data
+    def flame_state_callback(self,msg):
+       self.flame_state = msg.data
     async def handle_subscribe(self, websocket, data):
         """处理订阅请求"""
         request_data = data.get("DATA", {})
@@ -141,7 +165,6 @@ class CommandHandlers:
         
         await send_info(websocket, "UNSUBSCRIBE", "已取消订阅")
 
-    # ...existing code...
     async def handle_lift_control(self, websocket,data):
         request_data = data.get("DATA")
         if not request_data:
@@ -158,9 +181,11 @@ class CommandHandlers:
             lift_control_msg.cmd = "up"
         elif direction == "DOWN":
             lift_control_msg.cmd = "down"
+        elif direction == "RESET":
+            lift_control_msg.cmd = "reset"
         lift_control_msg.data = int(data) 
         self.lift_control_publisher.publish(lift_control_msg)
-        await send_info(websocket,"LIFT_CONTROL","Lift control command sent successfully")
+        await send_message(websocket,"LIFT_CONTROL",self.liftdata)
 
     async def handle_platform_control(self, websocket, data):
         request_data = data.get("DATA")
@@ -188,3 +213,48 @@ class CommandHandlers:
 
     async def handle_ping(self, websocket, data):
         await send_info(websocket, "PING", "Ping command received successfully")
+
+    async def handle_cancle_flamealarm(self,websocket, data):
+        request_data = data.get("DATA")
+        if not request_data:
+            await send_error(websocket, 400, "请求数据不能为空")
+            return
+        data = request_data.get("DATA")
+
+        flamesensor_control_msg = FlamesensorControl()
+        flamesensor_control_msg.cmd = "cancle"
+        flamesensor_control_msg.data = int(data) 
+        self.flamesensor_control_publisher.publish(flamesensor_control_msg)
+        await send_info(websocket,"CANCLE_FLAME_ALARM"," Flamesensor cancle alarm control command sent successfully")
+
+    async def handle_cancle_smokealarm(self,websocket, data):
+        request_data = data.get("DATA")
+        if not request_data:
+            await send_error(websocket, 400, "请求数据不能为空")
+            return
+        data = request_data.get("DATA")
+
+        smokesensor_control_msg = SmokesensorControl()
+        smokesensor_control_msg.cmd = "cancle"
+        smokesensor_control_msg.data = int(data) 
+        self.smokesensor_control_publisher.publish(smokesensor_control_msg)
+        await send_info(websocket,"CANCLE_SMOKE_ALARM"," Smokesensor cancle alarm control command sent successfully")
+    # 开始状态返回接口设计
+    async def handle_get_flame_alarm_state(self,websocket):
+        message = {
+            "TYPE": "GET_FLAME_ALARM_STATE",
+            "SENSOR_TYPE": "FLAME",
+            "DATA": self.flame_state,
+            "TIMESTAMP": rospy.Time.now().to_sec()
+        }
+        await websocket.send(json.dumps(message))
+                       
+    async def handle_get_smoke_alarm_state(self,websocket, data):
+        message = {
+            "TYPE": "GET_SMOKE_ALARM_STATE ",
+            "SENSOR_TYPE": "SMOKE",
+            "DATA": self.smoke_state,
+            "TIMESTAMP": rospy.Time.now().to_sec()
+        }
+        await websocket.send(json.dumps(message))
+

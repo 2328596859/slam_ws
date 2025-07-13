@@ -87,5 +87,13 @@ class WebSocketServer:
             await self.handlers.handle_subscribe(websocket, data)
         elif cmd == Command.UNSUBSCRIBE:
             await self.handlers.handle_unsubscribe(websocket, data)
+        elif cmd == Command.CANCLE_FLAME_ALARM:
+            await self.handlers.handle_cancle_flamealarm(websocket, data)
+        elif cmd == Command.CANCLE_SMOKE_ALARM:
+            await self.handlers.handle_cancle_smokealarm(websocket, data)
+        elif cmd == Command.GET_FLAME_ALARM_STATE :
+            await self.handlers.handle_get_flame_alarm_state(websocket, data)
+        elif cmd == Command.GET_SMOKE_ALARM_STATE:
+            await self.handlers.handle_get_smoke_alarm_state(websocket, data)
         else:
             await send_error(websocket, 400, "Unknown command: {}".format(cmd))
