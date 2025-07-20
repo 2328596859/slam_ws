@@ -127,8 +127,8 @@ void SerialPort::publishSerialmsgs(ros::NodeHandle& nh, const std::string& topic
                 if (frame_head != 0xA5) {
                     continue;
                 }
-                ROS_INFO("header: 0x%02x, length: %d, cmd: 0x%02x, func: 0x%02x", 
-                        frame_head, data_len, cmd, func);
+                // ROS_INFO("header: 0x%02x, length: %d, cmd: 0x%02x, func: 0x%02x", 
+                //         frame_head, data_len, cmd, func);
                 
                 // 创建并填充ROS消息
                 open_msgs::Serialmsg msg;
@@ -151,12 +151,12 @@ void SerialPort::publishSerialmsgs(ros::NodeHandle& nh, const std::string& topic
                     }
                 }
                 // 输出data内容
-                std::ostringstream data_oss;
-                data_oss << "data: ";
-                for (const auto& byte : msg.data) {
-                    data_oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-                }
-                ROS_INFO_STREAM(data_oss.str());
+                // std::ostringstream data_oss;
+                // data_oss << "data: ";
+                // for (const auto& byte : msg.data) {
+                //     data_oss << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+                // }
+                // ROS_INFO_STREAM(data_oss.str());
                 
                 // 校验和是最后一个字节
                 msg.checksum = frame.back();

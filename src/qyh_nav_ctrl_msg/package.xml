@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<package format="2">
+  <name>qyh_nav_ctrl_msg</name>
+  <version>0.0.1</version>
+  <description>
+    The qyh_nav_ctrl_msg package
+  </description>
+  <maintainer email="jsqinyinghao@live.com">qyh</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>geometry_msgs</depend>
+  <depend>std_msgs</depend>
+
+  <build_depend>message_generation</build_depend>
+  
+  <exec_depend>message_runtime</exec_depend>
+</package>

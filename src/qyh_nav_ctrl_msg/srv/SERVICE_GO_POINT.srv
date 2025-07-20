@@ -1,0 +1,7 @@
+string point_name
+bool use_ulternate
+string ulternate_mode
+float64 surround_area_distance
+bool ignore_obstacles
+string ignore_obstacles_move_type
+---

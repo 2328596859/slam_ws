@@ -9,6 +9,7 @@ project(web_socket)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   rospy
+  qyh_nav_ctrl_msg
 )
 
 ## System dependencies are found with CMake's conventions

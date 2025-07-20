@@ -5,6 +5,8 @@ import json
 from open_msgs.msg import LiftControl, PlatformControl,FlamesensorControl,SmokesensorControl,FlamesensorState,SmokesensorState
 import std_msgs.msg
 import threading
+import socket
+from qyh_nav_ctrl_msg.msg import NAV_STATUS
 
 class CommandHandlers:
     """
@@ -13,19 +15,24 @@ class CommandHandlers:
     该类处理来自WebSocket客户端的命令，并执行相应的操作。
     """
 
-    def __init__(self):
+    def __init__(self,socket_server):
         """
         初始化命令处理器。
         """
         # 存储WebSocket连接
         self.websocket_clients = set()
-        
+        self.socket_server = socket_server
+        self.socket_lock = threading.Lock()
+        self.is_connected = True
         # 存储事件循环引用
         self.loop = None
         self.liftdata = None
         self.platformdata = None
         self.flame_state = None
         self.smoke_state = None
+        self.charge_state = None
+        self.nav_state = None
+        self.nav_charge = None 
         self.smoke_sub = rospy.Subscriber("smokesensor/smoke_data", std_msgs.msg.Float64, self.smoke_callback)
         self.temperature_sub = rospy.Subscriber("smokesensor/temperature_data", std_msgs.msg.Float64, self.temperature_callback)
         self.humidity_sub = rospy.Subscriber("smokesensor/humidity_data", std_msgs.msg.Float64, self.humidity_callback)
@@ -34,13 +41,58 @@ class CommandHandlers:
         self.emergencystop_sub = rospy.Subscriber("emergencystop/emergency_data", std_msgs.msg.Int32, self.emergencystopdata_callback)
         self.smoke_state_sub = rospy.Subscriber("smokesensor/smoke_state", std_msgs.msg.Int32, self.smoke_state_callback)
         self.flame_state_sub = rospy.Subscriber("smokesensor/flame_state", std_msgs.msg.Int32, self.flame_state_callback)
-
+        self.battery_sub = rospy.Subscriber("/battery", std_msgs.msg.Int32, self.battery_callback)
+        self.charge_state_sub = rospy.Subscriber("/charge_status", std_msgs.msg.String, self.battery_state_callback)
+        self.navigation_state_sub = rospy.Subscriber("/nav_ctrl_status", NAV_STATUS, self.navigation_state_callback)
         # 定义两个话题发布者话题/lift_control与/platform_control
         self.lift_control_publisher = rospy.Publisher('lift/lift_control', LiftControl, queue_size=10)
         self.platform_control_publisher = rospy.Publisher('platform/platform_control', PlatformControl, queue_size=10)
         self.flamesensor_control_publisher = rospy.Publisher('flamesensor/flamesensor_control', FlamesensorControl, queue_size=10)
         self.smokesensor_control_publisher = rospy.Publisher('smokesensor/smokesensor_control', SmokesensorControl, queue_size=10)
 
+    def send_socket_message(self, msg_send):
+        """安全地发送socket消息"""
+        with self.socket_lock:
+            try:
+                if not self.socket_server:
+                    rospy.logwarn("Socket服务未初始化")
+                    return False
+                    
+                total_sent = 0
+                msg_length = len(msg_send)
+                
+                while total_sent < msg_length:
+                    try:
+                        sent = self.socket_server.send(msg_send[total_sent:])
+                        if sent == 0:
+                            raise RuntimeError("连接已关闭")
+                        total_sent += sent
+                    except (socket.error, BrokenPipeError) as e:
+                        rospy.logwarn(f"发送数据时出错: {e}")
+                        self.socket_server.close()
+                        self.reconnect_socket()
+                        return False
+                        
+                return True
+            except Exception as e:
+                rospy.logerr(f"发送消息时发生错误: {e}")
+                return False
+    def reconnect_socket(self):
+        """重新连接socket"""
+        try:
+            self.socket_server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket_server.connect(("192.168.1.200", 10000))
+            self.socket_server.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+            self.socket_server.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPIDLE, 60)
+            self.socket_server.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPINTVL, 3)
+            self.socket_server.setsockopt(socket.IPPROTO_TCP, socket.TCP_KEEPCNT, 5)
+            self.is_connected = True
+            rospy.loginfo("Socket重连成功")
+            return True
+        except socket.error as e:
+            rospy.logerr(f"Socket重连失败: {e}")
+            self.is_connected = False
+            return False
     def set_event_loop(self, loop):
         """设置事件循环引用"""
         self.loop = loop
@@ -90,6 +142,54 @@ class CommandHandlers:
                 rospy.logwarn(f"调度广播任务失败: {e}")
         else:
             rospy.logwarn("事件循环未设置或已关闭，无法广播消息")
+    
+    def navigation_state_callback(self, msg):
+        """导航状态回调"""
+        self.nav_state = msg
+        act_state = self.nav_state.node_name
+        # "Charge|ChargePoint"判断这个字符中使用|来分割字符串判断是不是有"Charge"
+        if "Charge" in act_state or "ChargePoint" in act_state:
+            self.nav_charge = "charge"
+        else:
+            self.nav_charge = "none"
+
+    def pack_msg(self,msg):
+        msg_bytes = msg.encode("utf-8")
+        msg_len = len(msg_bytes)
+        msg_head = bytes.fromhex("88")
+        msg_tail = bytes.fromhex("AA")
+        msg_send = msg_head + msg_len.to_bytes(4, "little") + msg_bytes + msg_tail
+        return msg_send
+    
+    def battery_state_callback(self, msg):
+        """电池状态回调"""
+        '''
+            data: "charge-station"
+            data: "charge-none"
+        '''
+        self.charge_state = msg.data
+
+    def battery_callback(self, msg):
+        """低电量自动回充"""
+        try:
+            battery = msg.data
+            if battery < 30 and self.charge_state == "charge-none" and self.nav_charge == "none":
+                msg = """
+                        { 
+                            "CMD": "CMD_CHARGE", 
+                            "MSG_TYPE": "CLIENT_REQUEST", 
+                            "QUEUE_NUMBER": 33
+                        } 
+                    """
+                msg_send = self.pack_msg(msg)
+                if self.send_socket_message(msg_send):
+                    rospy.loginfo("发送回充命令成功")
+                else:
+                    rospy.logwarn("发送回充命令失败")
+            else:
+                rospy.loginfo("跳过回充发送指令")
+        except Exception as e:
+            rospy.logerr(f"处理电池回调时出错: {e}")
 
     def smoke_callback(self, msg):
         """烟雾传感器数据回调"""

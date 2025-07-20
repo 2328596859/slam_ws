@@ -19,7 +19,7 @@ class WebSocketServer:
     路由到适当的处理器。
     """
 
-    def __init__(self, host="localhost", port=10780):
+    def __init__(self,socket_server, host="localhost", port=10780):
         """
         初始化WebSocket服务器。
 
@@ -29,7 +29,7 @@ class WebSocketServer:
         """
         self.host = host
         self.port = port
-        self.handlers = CommandHandlers()
+        self.handlers = CommandHandlers(socket_server)
         
 
     async def start_server(self):

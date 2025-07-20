@@ -17,6 +17,6 @@ until rostopic list >/dev/null 2>&1; do
   echo "等待 ROS master 启动..."
   sleep 2
 done
-
+sleep 10
 # 运行主服务脚本
 python server_node.py

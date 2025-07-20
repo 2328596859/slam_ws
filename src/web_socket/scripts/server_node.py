@@ -3,15 +3,24 @@
 import os
 import asyncio
 import rospy
+import socket
 from websocket_service.server import WebSocketServer
 
 class ServerNode:
     def __init__(self):
         """初始化ROS节点和WebSocket服务器。"""
         rospy.init_node('websocket_server_node', anonymous=False)
+        # socket初始化
+        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            self.socket.connect(("192.168.1.200",10000))
+            rospy.loginfo(f"WebSocket server listening")
+        except socket.error as e:
+            rospy.logerr(f"Socket error: {e}")
+            raise RuntimeError(f"Failed to bind socket on {host}:{port}") from e
         host = "0.0.0.0"
         port = 10780
-        self.server = WebSocketServer(host, port)
+        self.server = WebSocketServer(self.socket,host, port)
         rospy.on_shutdown(self.shutdown)
         self.loop = asyncio.new_event_loop()
         self.server_task = None
