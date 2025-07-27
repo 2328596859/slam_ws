@@ -50,6 +50,7 @@ add_message_files(
   FILES
   LiftControl.msg
   PlatformControl.msg
+  PlatformState.msg
   Serialmsg.msg
   FlamesensorControl.msg
   SmokesensorControl.msg

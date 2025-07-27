@@ -4,6 +4,8 @@ import os
 import asyncio
 import rospy
 import socket
+import requests
+import json
 from websocket_service.server import WebSocketServer
 
 class ServerNode:
@@ -64,8 +66,27 @@ class ServerNode:
             self.loop.call_soon_threadsafe(self.loop.stop)
         rospy.loginfo("Kuavo WebSocket server node shut down successfully")
 
+def send_robotState(robotSn, status):
+    """发送机器人状态到指定URL。"""
+    url = "http://117.72.41.60:8080/robot/info/status/editBySn"
+
+
+    payload = {
+        "robotSn": robotSn,
+        "status": status
+    }
+
+
+    headers = {
+        "Content-Type": "application/json"
+    }
+    response = requests.put(url, data=json.dumps(payload), headers=headers)
+    rospy.logwarn("状态码: %s", response.status_code)
+    rospy.logwarn("响应内容: %s", response.text)
+
 
 if __name__ == '__main__':
+    send_robotState(robotSn="CS202504170001", status="0")
     node = ServerNode()
     try:
         node.run()

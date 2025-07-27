@@ -1,0 +1,5 @@
+
+int32 horizontalServoMotorStatus
+int32 verticalServoMotorStatus
+int32 horizontalServoEncoderEngravingDegree # 水平
+int32 verticalServoEncoderEngravingDegree  # 垂直

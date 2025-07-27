@@ -2,7 +2,7 @@ from websocket_service.utils import *
 import rospy
 import asyncio
 import json
-from open_msgs.msg import LiftControl, PlatformControl,FlamesensorControl,SmokesensorControl,FlamesensorState,SmokesensorState
+from open_msgs.msg import LiftControl, PlatformControl,FlamesensorControl,SmokesensorControl,FlamesensorState,SmokesensorState,PlatformState
 import std_msgs.msg
 import threading
 import socket
@@ -33,6 +33,8 @@ class CommandHandlers:
         self.charge_state = None
         self.nav_state = None
         self.nav_charge = None 
+        self.platform_horizontalServoEncoderEngravingDegree = None
+        self.platform_verticalServoEncoderEngravingDegree = None
         self.smoke_sub = rospy.Subscriber("smokesensor/smoke_data", std_msgs.msg.Float64, self.smoke_callback)
         self.temperature_sub = rospy.Subscriber("smokesensor/temperature_data", std_msgs.msg.Float64, self.temperature_callback)
         self.humidity_sub = rospy.Subscriber("smokesensor/humidity_data", std_msgs.msg.Float64, self.humidity_callback)
@@ -44,6 +46,7 @@ class CommandHandlers:
         self.battery_sub = rospy.Subscriber("/battery", std_msgs.msg.Int32, self.battery_callback)
         self.charge_state_sub = rospy.Subscriber("/charge_status", std_msgs.msg.String, self.battery_state_callback)
         self.navigation_state_sub = rospy.Subscriber("/nav_ctrl_status", NAV_STATUS, self.navigation_state_callback)
+        self.platform_state_sub = rospy.Subscriber("/platform/platform_data", PlatformState, self.platform_state_callback)
         # 定义两个话题发布者话题/lift_control与/platform_control
         self.lift_control_publisher = rospy.Publisher('lift/lift_control', LiftControl, queue_size=10)
         self.platform_control_publisher = rospy.Publisher('platform/platform_control', PlatformControl, queue_size=10)
@@ -153,6 +156,21 @@ class CommandHandlers:
         else:
             self.nav_charge = "none"
 
+    def platform_state_callback(self, msg):
+        """平台状态回调"""
+        self.platform_horizontalServoEncoderEngravingDegree = msg.horizontalServoEncoderEngravingDegree
+        self.platform_verticalServoEncoderEngravingDegree = msg.verticalServoEncoderEngravingDegree
+        message = {
+            "TYPE": "PLATFORM_STATE",
+            "DATA": {
+                "horizontalServoMotorStatus" : msg.horizontalServoMotorStatus,
+                "verticalServoMotorStatus" : msg.verticalServoMotorStatus,
+                "horizontalServoEncoderEngravingDegree": self.platform_horizontalServoEncoderEngravingDegree,
+                "verticalServoEncoderEngravingDegree": self.platform_verticalServoEncoderEngravingDegree
+            },
+            "TIMESTAMP": rospy.Time.now().to_sec()
+        }
+        self._schedule_broadcast(message)
     def pack_msg(self,msg):
         msg_bytes = msg.encode("utf-8")
         msg_len = len(msg_bytes)
@@ -173,7 +191,7 @@ class CommandHandlers:
         """低电量自动回充"""
         try:
             battery = msg.data
-            if battery < 30 and self.charge_state == "charge-none" and self.nav_charge == "none":
+            if battery < 20 and self.charge_state == "charge-none" and self.nav_charge == "none":
                 msg = """
                         { 
                             "CMD": "CMD_CHARGE", 
@@ -299,15 +317,22 @@ class CommandHandlers:
             return
         # 发布PlatformControl消息
         platform_control_msg = PlatformControl()
+        data = float(data)
         if direction == "UP":
             platform_control_msg.cmd = "up"
+            platformdata = float(self.platform_verticalServoEncoderEngravingDegree) - 2048 + 4096*(-1 * data + 180) / 360
         elif direction == "DOWN":
             platform_control_msg.cmd = "down"
+            platformdata = float(self.platform_verticalServoEncoderEngravingDegree) - 2048 + 4096 * (data + 180) / 360
         elif direction == "RIGHT":
             platform_control_msg.cmd = "right"
+            platformdata = float(self.platform_horizontalServoEncoderEngravingDegree) - 2048 + 4096 * (data + 180) / 360
         elif direction == "LEFT":
             platform_control_msg.cmd = "left"
-        platform_control_msg.data = int(data) 
+            platformdata = float(self.platform_horizontalServoEncoderEngravingDegree) - 2048 + 4096 * (-1 * data + 180) / 360
+        platform_control_msg.data = int(platformdata) 
+        # print(f"data: {self.platform_horizontalServoEncoderEngravingDegree}, {self.platform_verticalServoEncoderEngravingDegree}")
+        # print(f"platform_control_msg.data: {platform_control_msg.data}")
         self.platform_control_publisher.publish(platform_control_msg)
         await send_info(websocket, "PLATFORM_CONTROL", "Platform control command sent successfully")
 
